@@ -78,6 +78,8 @@ try
         {
             using var dumper = new Dumper();
             dumper.DetectDisc(driveLetter + Path.DirectorySeparatorChar);
+            await dumper.FindDiscKeyAsync(SettingsProvider.Settings.IrdDir)
+                .ConfigureAwait(false);
             await dumper.DumpAsync(output).ConfigureAwait(false);
         }
         catch (Exception ex)
