@@ -63,7 +63,7 @@ try
         }
 
         var before = EnumerateDrives();
-        using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath \"{isoPath}\""))
+        using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath '{isoPath}'"))
             mountProc?.WaitForExit();
         var newDrive = WaitForDrive(before);
         if (newDrive is null)
@@ -86,7 +86,7 @@ try
         }
         finally
         {
-            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath \"{isoPath}\""))
+            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath '{isoPath}'"))
                 dismountProc?.WaitForExit();
             mounted.Remove(isoPath);
         }
