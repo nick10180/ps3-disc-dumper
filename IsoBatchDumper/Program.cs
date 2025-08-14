@@ -60,6 +60,7 @@ try
 {
     foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Order())
     {
+        bool successfulDump = false;
         var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
         if (dryRun)
         {
@@ -68,6 +69,7 @@ try
         }
 
         var before = EnumerateDrives();
+
         using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath '{isoPath}'"))
             mountProc?.WaitForExit();
         var newDrive = WaitForDrive(before);
@@ -86,6 +88,7 @@ try
             await dumper.FindDiscKeyAsync(SettingsProvider.Settings.IrdDir)
                 .ConfigureAwait(false);
             await dumper.DumpAsync(output).ConfigureAwait(false);
+            successfulDump = true;
         }
         catch (Exception ex)
         {
@@ -93,11 +96,11 @@ try
         }
         finally
         {
-            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath '{isoPath}'"))
+            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath @'{isoPath}'@"))
                 dismountProc?.WaitForExit();
             mounted.Remove(isoPath);
         }
-        if (delete)
+        if (delete && successfulDump)
         {
             try
             {
@@ -118,7 +121,7 @@ finally
         {
             try
             {
-                using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath \"{isoPath}\"");
+                using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath @'{isoPath}'@");
                 dismountProc?.WaitForExit();
             }
             catch { }
