@@ -7,6 +7,7 @@ string? sourceDir = null;
 string? outputRoot = null;
 var dryRun = false;
 var recurse = false;
+var delete = false;
 
 foreach (var arg in args)
 {
@@ -19,6 +20,10 @@ foreach (var arg in args)
         case "--recurse":
         case "-r":
             recurse = true;
+            break;
+        case "-d":
+        case "--delete":
+            delete = true;
             break;
         default:
             if (sourceDir is null)
@@ -91,6 +96,17 @@ try
             using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath '{isoPath}'"))
                 dismountProc?.WaitForExit();
             mounted.Remove(isoPath);
+        }
+        if (delete)
+        {
+            try
+            {
+                File.Delete(isoPath);
+                Console.WriteLine($"Delete iso at {isoPath}");
+            }catch(Exception ex)
+            {
+                Console.Error.WriteLine($"Unable to delete {isoPath}, error follows:\r\n" +ex.ToString());
+            }
         }
     }
 }
