@@ -3,14 +3,41 @@ using System.Threading;
 using Ps3DiscDumper;
 using WmiLight;
 
-if (args.Length < 2)
+string? sourceDir = null;
+string? outputRoot = null;
+var dryRun = false;
+
+foreach (var arg in args)
 {
-    Console.WriteLine("Usage: <iso-source-directory> <output-directory>");
+    switch (arg)
+    {
+        case "--dry-run":
+        case "-n":
+            dryRun = true;
+            break;
+        default:
+            if (sourceDir is null)
+                sourceDir = arg;
+            else if (outputRoot is null)
+                outputRoot = arg;
+            else
+            {
+                Console.WriteLine("Usage: <iso-source-directory> <output-directory> [--dry-run]");
+                return;
+            }
+            break;
+    }
+}
+
+if (sourceDir is null || outputRoot is null)
+{
+    Console.WriteLine("Usage: <iso-source-directory> <output-directory> [--dry-run]");
     return;
 }
 
-var sourceDir = args[0];
-var outputRoot = args[1];
+if (dryRun)
+    Console.WriteLine("Dry run: no discs will be dumped");
+
 if (!Directory.Exists(sourceDir))
 {
     Console.Error.WriteLine($"Source directory '{sourceDir}' does not exist.");
@@ -23,6 +50,13 @@ try
 {
     foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso"))
     {
+        var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
+        if (dryRun)
+        {
+            Console.WriteLine($"[Dry Run] Would dump {isoPath} to {output}");
+            continue;
+        }
+
         var before = EnumerateDrives();
         using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath \"{isoPath}\""))
             mountProc?.WaitForExit();
@@ -35,7 +69,6 @@ try
         mounted.Add(isoPath);
         var (deviceId, driveLetter) = newDrive.Value;
         Console.WriteLine($"Mounted {isoPath} as {deviceId} ({driveLetter})");
-        var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
         try
         {
             using var dumper = new Dumper();
@@ -56,14 +89,17 @@ try
 }
 finally
 {
-    foreach (var isoPath in mounted)
+    if (!dryRun)
     {
-        try
+        foreach (var isoPath in mounted)
         {
-            using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath \"{isoPath}\"");
-            dismountProc?.WaitForExit();
+            try
+            {
+                using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath \"{isoPath}\"");
+                dismountProc?.WaitForExit();
+            }
+            catch { }
         }
-        catch { }
     }
 }
 
