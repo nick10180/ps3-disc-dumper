@@ -55,7 +55,8 @@ Iso Batch Dumper
 `IsoBatchDumper` can process multiple ISO images in a directory. It runs on Windows and mounts each image before invoking the dumper.
 
 ```
-IsoBatchDumper <iso-source-directory> <output-directory> [--dry-run]
+IsoBatchDumper <iso-source-directory> <output-directory> [--dry-run] [--recurse]
 ```
 
 Use `--dry-run` to print planned operations without mounting or dumping the images.
+Use `--recurse` to search for ISO files in all subdirectories of the source directory.

@@ -6,6 +6,7 @@ using WmiLight;
 string? sourceDir = null;
 string? outputRoot = null;
 var dryRun = false;
+var recurse = false;
 
 foreach (var arg in args)
 {
@@ -15,6 +16,10 @@ foreach (var arg in args)
         case "-n":
             dryRun = true;
             break;
+        case "--recurse":
+        case "-r":
+            recurse = true;
+            break;
         default:
             if (sourceDir is null)
                 sourceDir = arg;
@@ -22,7 +27,7 @@ foreach (var arg in args)
                 outputRoot = arg;
             else
             {
-                Console.WriteLine("Usage: <iso-source-directory> <output-directory> [--dry-run]");
+                Console.WriteLine("Usage: <iso-source-directory> <output-directory> [--dry-run] [--recurse]");
                 return;
             }
             break;
@@ -31,7 +36,7 @@ foreach (var arg in args)
 
 if (sourceDir is null || outputRoot is null)
 {
-    Console.WriteLine("Usage: <iso-source-directory> <output-directory> [--dry-run]");
+    Console.WriteLine("Usage: <iso-source-directory> <output-directory> [--dry-run] [--recurse]");
     return;
 }
 
@@ -48,7 +53,7 @@ Directory.CreateDirectory(outputRoot);
 var mounted = new List<string>();
 try
 {
-    foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso"))
+    foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
     {
         var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
         if (dryRun)
