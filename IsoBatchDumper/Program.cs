@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Threading;
 using Ps3DiscDumper;
@@ -60,6 +61,7 @@ try
 {
     foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Order())
     {
+        var cleanPath = isoPath.Replace("\'", "\\'");
         bool successfulDump = false;
         var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
         if (dryRun)
@@ -70,7 +72,7 @@ try
 
         var before = EnumerateDrives();
 
-        using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath --% {isoPath}"))
+        using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath '{cleanPath}'"))
             mountProc?.WaitForExit();
         var newDrive = WaitForDrive(before);
         if (newDrive is null)
@@ -96,7 +98,7 @@ try
         }
         finally
         {
-            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath --% {isoPath}"))
+            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath '{cleanPath}'"))
                 dismountProc?.WaitForExit();
             mounted.Remove(isoPath);
         }
@@ -121,7 +123,8 @@ finally
         {
             try
             {
-                using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath --% {isoPath}@");
+                var cleanPath = isoPath.Replace("\'", "\\'");
+                using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath '{cleanPath}'");
                 dismountProc?.WaitForExit();
             }
             catch { }
