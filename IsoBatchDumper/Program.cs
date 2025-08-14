@@ -70,8 +70,19 @@ try
 
         var before = EnumerateDrives();
 
-        using (var mountProc = Process.Start("powershell", $"Mount-DiskImage -ImagePath '{isoPath}'"))
+        // Mount using ProcessStartInfo with ArgumentList for safe path handling
+        var mountStartInfo = new ProcessStartInfo
+        {
+            FileName = "powershell.exe",
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        mountStartInfo.ArgumentList.Add("-Command");
+        mountStartInfo.ArgumentList.Add($"Mount-DiskImage -LiteralPath '{isoPath.Replace("'", "''")}'");
+
+        using (var mountProc = Process.Start(mountStartInfo))
             mountProc?.WaitForExit();
+
         var newDrive = WaitForDrive(before);
         if (newDrive is null)
         {
@@ -96,7 +107,17 @@ try
         }
         finally
         {
-            using (var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath @'{isoPath}'@"))
+            // Dismount using ProcessStartInfo with ArgumentList for safe path handling
+            var dismountStartInfo = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            dismountStartInfo.ArgumentList.Add("-Command");
+            dismountStartInfo.ArgumentList.Add($"Dismount-DiskImage -LiteralPath '{isoPath.Replace("'", "''")}'");
+
+            using (var dismountProc = Process.Start(dismountStartInfo))
                 dismountProc?.WaitForExit();
             mounted.Remove(isoPath);
         }
@@ -106,9 +127,10 @@ try
             {
                 File.Delete(isoPath);
                 Console.WriteLine($"Delete iso at {isoPath}");
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
-                Console.Error.WriteLine($"Unable to delete {isoPath}, error follows:\r\n" +ex.ToString());
+                Console.Error.WriteLine($"Unable to delete {isoPath}, error follows:\r\n" + ex.ToString());
             }
         }
     }
@@ -121,7 +143,16 @@ finally
         {
             try
             {
-                using var dismountProc = Process.Start("powershell", $"Dismount-DiskImage -ImagePath @'{isoPath}'@");
+                var dismountStartInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                dismountStartInfo.ArgumentList.Add("-Command");
+                dismountStartInfo.ArgumentList.Add($"Dismount-DiskImage -LiteralPath '{isoPath.Replace("'", "''")}'");
+
+                using var dismountProc = Process.Start(dismountStartInfo);
                 dismountProc?.WaitForExit();
             }
             catch { }
