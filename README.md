@@ -49,3 +49,13 @@ Building
 * It is recommended to use [JetBrains Raider](https://www.jetbrains.com/rider/), [Visual Studio](https://visualstudio.microsoft.com/), or [VS Code](https://code.visualstudio.com/) for development.
   * On Linux select the Linux configuration to prevent various issues due to Windows-specific dependencies.
   * You can build for both Windows and Linux on Windows (you can test Linux build with WSL2 or with a Linux VM).
+
+Iso Batch Dumper
+================
+`IsoBatchDumper` can process multiple ISO images in a directory. It runs on Windows and mounts each image before invoking the dumper.
+
+```
+IsoBatchDumper <iso-source-directory> <output-directory> [--dry-run]
+```
+
+Use `--dry-run` to print planned operations without mounting or dumping the images.
