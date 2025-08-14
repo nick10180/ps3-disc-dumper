@@ -53,7 +53,7 @@ Directory.CreateDirectory(outputRoot);
 var mounted = new List<string>();
 try
 {
-    foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
+    foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Order())
     {
         var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
         if (dryRun)
