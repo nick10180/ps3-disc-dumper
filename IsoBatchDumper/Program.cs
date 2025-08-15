@@ -61,7 +61,7 @@ try
 {
     foreach (var isoPath in Directory.EnumerateFiles(sourceDir, "*.iso", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Order())
     {
-        var cleanPath = isoPath.Replace("\'", "`'");
+        var cleanPath = isoPath.Replace("\'", "''");
         bool successfulDump = false;
         var output = Path.Combine(outputRoot, Path.GetFileNameWithoutExtension(isoPath));
         if (dryRun)
